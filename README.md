@@ -152,3 +152,141 @@ kubeadm init --apiserver-advertise-address=10.0.0.37 \
      --pod-network-cidr=192.168.0.0/16 \ 
      --control-plane-endpoint="kubemaster2001:6443"
 ```
+- Please take note of the folloing JOIN commands to join the cluster 
+(if we do not remember these join commands, we can regenerate them too)
+```
+To join as second control plane node : 
+
+kubeadm join kubemaster2001:6443 \ 
+--token gzbaks.0e1bbbk00utk88u7 \ 
+--discovery-token-ca-cert-hash \ sha256:6a4e09604ab314622d0e52774e245ede36aea3fc9b53ea593cc3b9be9fe5c556 \ 
+--control-plane \ 
+--certificate-key d76b6cd2b3a41495cddc436c1a52eb813041acd4fafa3294493720a584e682f4
+
+To Join as a worker node: 
+
+kubeadm join kubemaster2001:6443 \ 
+--token 06leg5.9aqlax2j6184d0wf \ 
+--discovery-token-ca-cert-hash sha256:6a4e09604ab314622d0e52774e245ede36aea3fc9b53ea593cc3b9be9fe5c556
+```
+
+- If tokens are expired or need to recreate: (Please run the following in master node,  you can run as <code>root</code> or <code> sudo [command] </code>)
+```
+kubeadm token list # <= to view the current token list
+
+thinny81@kubemaster2001:~$ sudo kubeadm token create
+4q5498.ripn7fu0bw0fasyf
+
+thinny81@kubemaster2001:~$ openssl x509 -pubkey \ 
+-in /etc/kubernetes/pki/ca.crt  | openssl rsa -pubin \ 
+-outform der 2>/dev/null | openssl dgst -sha256 \ 
+-hex
+
+Output: 
+----------
+(stdin)= 6a4e09604ab314622d0e52774e245ede36aea3fc9b53ea593cc3b9be9fe5c556
+
+root@kubeworker2002: ̃# kubeadm join \
+     --token 4q5498.ripn7fu0bw0fasyf \
+     kubemaster2001:6443 \
+     --discovery-token-ca-cert-hash \
+     sha256:6a4e09604ab314622d0e52774e245ede36aea3fc9b53ea593cc3b9be9fe5c556
+
+Or you can create : 
+========================================
+[[ For joining as 2nd Control Plane]]:
+========================================
+thinny81@kubemaster2001:~$ sudo kubeadm token create \ 
+--print-join-command \ 
+--certificate-key \ 
+$(kubeadm alpha certs certificate-key)
+
+Output: 
+---------
+kubeadm join \ 
+kubemaster2001:6443 \ 
+--token 5c5f9u.t9rvgl3ddiamcygi \ 
+--discovery-token-ca-cert-hash sha256:6a4e09604ab314622d0e52774e245ede36aea3fc9b53ea593cc3b9be9fe5c556 \ 
+--control-plane \ 
+--certificate-key 19729a5253cd0254c9928e3a6f018fa06c4255d4b1f27a3b56561abb98733907
+========================================
+[[For Joining as another node]]: 
+========================================
+thinny81@kubemaster2001:~$ sudo kubeadm token create\ 
+--print-join-command
+
+Output:
+---------
+kubeadm join kubemaster2001:6443 \ 
+--token o15fkd.onqtk4hpla0lr5n0 \ 
+--discovery-token-ca-cert-hash sha256:6a4e09604ab314622d0e52774e245ede36aea3fc9b53ea593cc3b9be9fe5c556
+
+```
+### 2. Setting up KubeConfig 
+Setup the right kubernetes configuration file so that it will connect to the right cluser
+```
+Please run the following commands as non root user
+
+mkdir -p ~$HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+You can set the kubeconfig as following: 
+export KUBECONFIG=~/.kube/admin.conf
+
+Or You can set the alias in your bash_profile so that if you have different clusters you can connect to the right one: 
+
+alias k8dev="export KUBECONFIG=~/.kube/kube-test.conf"
+
+```
+
+### 3. Setting up network plugin configuraiton to the cluseter
+```
+download the calico configuration yaml file : 
+wget https://docs.projectcalico.org/manifests/calico.yaml
+
+kubectl apply -f calico.yaml
+
+```
+
+### 4. Growing Cluster - adding worker nodes
+Please run the following commands as <code>root</code>
+- Update and upgrade kernel : 
+```
+apt-get update && apt-get upgrade -y
+```
+- Install docker
+```
+apt-get install -y docker.io
+```
+- Add Kubernetes Repo and Add GPG key for the packages
+```
+thinny81@kubeworker2002:~$ cat /etc/apt/sources.list.d/kubernetes.list
+deb  http://apt.kubernetes.io/  kubernetes-xenial  main
+
+curl -s \
+   https://packages.cloud.google.com/apt/doc/apt-key.gpg \
+   | apt-key add - 
+
+apt-get update
+```
+- Install kubeadm, kubelete and kubectl
+```
+apt-get install -y \
+        kubeadm=1.19.1-00 kubelet=1.19.1-00 kubectl=1.19.1-00
+```
+- Mark hold kubeadm, kubelet and kubectl from accidentally upgrading or applying updates
+```
+apt-mark hold kubelet kubeadm kubectl
+```
+- Join the worker node in the cluster using the join command above : 
+```
+kubeadm join kubemaster2001:6443 \ 
+--token o15fkd.onqtk4hpla0lr5n0 \ 
+--discovery-token-ca-cert-hash sha256:6a4e09604ab314622d0e52774e245ede36aea3fc9b53ea593cc3b9be9fe5c556
+```
+
+- Verify the cluster  
+```
+kubectl get nodes
+```

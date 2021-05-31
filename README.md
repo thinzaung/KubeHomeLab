@@ -146,5 +146,9 @@ wget https://docs.projectcalico.org/manifests/calico.yaml
 ```
 - Kubeadm init
 ```
-kubeadm init --apiserver-advertise-address=10.0.0.37 --apiserver-cert-extra-sans=10.0.0.37 --node-name kubemaster2001 --pod-network-cidr=192.168.0.0/16 --control-plane-endpoint="kubemaster2001:6443"
+kubeadm init --apiserver-advertise-address=10.0.0.37 \ 
+     --apiserver-cert-extra-sans=10.0.0.37 \ 
+     --node-name kubemaster2001 \ 
+     --pod-network-cidr=192.168.0.0/16 \ 
+     --control-plane-endpoint="kubemaster2001:6443"
 ```

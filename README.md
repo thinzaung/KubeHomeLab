@@ -12,14 +12,13 @@ Following is the instruction on how kubernetes clusters are created in my home n
 ## Part I -  Creating Kubernetes clusters using Vagrant Boxes: 
 
 1. Create Vagrant Boxes using following Vagrant File : 
-<code>
+
 * OS: ubuntu Focal 64 bit
 * VM provider : Virtual Box
 * CPU/Memory : 2 core / 8GB
 * Network : Brige Adatpaer in Virtual box
     * While configuring Compute with Vagrant file, please make sure the box is configured only with Bridge Network Adapater 
     * If multiple adapaters are creted, Kubernetes will pick up the first network adapter which might not be able to 
-</code>
 
 Example Vagrant File below. Please replace hostname, network adapater and usernames repsectively</br>
 

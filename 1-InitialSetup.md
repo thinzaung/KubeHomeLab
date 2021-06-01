@@ -290,3 +290,29 @@ kubeadm join kubemaster2001:6443 \
 ```
 kubectl get nodes
 ```
+
+### 5. Run NGINX Pod in the cluster
+```
+kubectl create deployment nginx --image=nginx
+
+kubectl get deployment nginx -o yaml > first.yaml
+```
+Add the followings in <code>first.yaml</code>
+```
+ spec:
+      containers:
+      - image: nginx
+        imagePullPolicy: Always
+        name: nginx
+        ports:                   # Add these
+        - containerPort: 80      # three
+          protocol: TCP          # lines
+```
+Replace the deployment and expose services so that we can access the service outside of the cluseters
+```
+kubectl replce -f first.yaml
+
+kubectl expose deployment nginx --type=LoadBalancer
+
+kubectl get svc
+```

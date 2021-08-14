@@ -1,2 +1,2 @@
 # KubeHomeLab
-To host a kube cluster on the servers at home
+This document includes steps to create kube cluster hosted on the VMs on prem.

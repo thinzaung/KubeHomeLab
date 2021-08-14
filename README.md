@@ -1,6 +1,6 @@
 # KubeHomeLab
 This document includes steps to create kube cluster hosted on the VMs on prem.
 
-[a relative link] 
+https://github.com/thinzaung/KubeHomeLab/blob/main/1-InitialSetup.md
 
 
